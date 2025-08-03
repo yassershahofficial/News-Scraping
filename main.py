@@ -3,7 +3,15 @@ from selenium.webdriver.chrome.options import Options #options for running selen
 from selenium.webdriver.chrome.service import Service #Mandatory
 from webdriver_manager.chrome import ChromeDriverManager #Mandatory
 import pandas as pd #labeled table for data analysis
+import os
+import sys
 
+def get_app_path():
+    if getattr(sys,'frozen',False):
+        return os.path.dirname(sys.executable) #use this for executable mode: pyinstaller exe
+    else:
+        return os.path.dirname(os.path.abspath(__file__)) #use this for testing before executable
+    
 def find_any_element(element, xpaths):
     for xpath in xpaths:
         elements = element.find_elements(by="xpath", value=xpath)
@@ -11,6 +19,11 @@ def find_any_element(element, xpaths):
             return elements[0]
     return None
 
+#path
+app_path = get_app_path()
+output_path = os.path.join(app_path, 'output')
+
+#for chrome driver setup
 website = "https://www.freemalaysiatoday.com"
 
 #headless mode - running without display
@@ -32,10 +45,12 @@ for article in articles:
         link = main.get_attribute("href")
         dict_articles.append({'title':title, 'link':link})
 
-#print(dict_articles)
-
 df_articles = pd.DataFrame(dict_articles)
-df_articles.to_csv('./output/all_articles.csv')
+
+if not os.path.exists(output_path):
+    os.makedirs(output_path)
+
+df_articles.to_csv(os.path.join(output_path,'all_articles.csv'))
 print("complete extraction")
 
 #input("Press Enter Key to close the browser...")
